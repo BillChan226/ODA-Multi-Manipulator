@@ -16,8 +16,8 @@ MAS架构被广泛用于Distributed Artificial Intelligence问题。所谓Multi-
 
 之前关于MMS的研究，可以按以下两类来划分：
 
-+ 如何将MAS框架部署到MMS系统上：[[2]]([Distributed planning for assembly tasks by multiple manipulators | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/351029)) 将待装配的零件的各部件看作agents；[[3]]([Task description, decomposition, and allocation in a distributed autonomous multi-agent robot system | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/407653)) 将每个机械臂看作agents；[[4]]([A multi-agent framework for grasping using visual servoing and collision avoidance | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/506532)) 在抓取任务中将机械臂的各个部分看作agents；
-+ agents之间的沟通方式：[[5]]([Flexible agent-based robotic assembly cell | IEEE Conference Publication | IEEE Xplore](https://ieeexplore.ieee.org/abstract/document/606871)) 采用contract-net协议（CNP）；[[6]]([Cooperative multi-agent system for an assembly robotics cell - ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/0736584595000089)) 采用blackboard architecture；
++ 如何将MAS框架部署到MMS系统上：[2](https://ieeexplore.ieee.org/abstract/document/351029) 将待装配的零件的各部件看作agents；[3](https://ieeexplore.ieee.org/abstract/document/407653) 将每个机械臂看作agents；[4](https://ieeexplore.ieee.org/abstract/document/506532) 在抓取任务中将机械臂的各个部分看作agents；
++ agents之间的沟通方式：[5](https://ieeexplore.ieee.org/abstract/document/606871) 采用contract-net协议（CNP）；[6](https://www.sciencedirect.com/science/article/abs/pii/0736584595000089) 采用blackboard architecture；
 
 该flexible装配MMS系统的定义如图：
 
