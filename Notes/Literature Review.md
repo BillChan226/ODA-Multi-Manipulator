@@ -2,9 +2,24 @@
 
 ### Multi-manipulator System
 
+#### Literature Categorization
+
+##### Distributed Manipulators on a Product Line:
+
+1. [Agent-based planning and control of a multi-manipulator assembly system](https://ieeexplore.ieee.org/abstract/document/772528): 提出了一个agent-based机械臂协作框架；
+2. [Multi-Robotic Arms Automated Production Line](https://ieeexplore.ieee.org/abstract/document/8384639): 提出了一个具体的多机器人协作系统；任务：Gluing and assembly line；
+
+##### Cooperating Manipulators Performing the Same Task
+
+1. [Optimization techniques applied to multiple manipulators for path planning and torque minimization](https://www.sciencedirect.com/science/article/abs/pii/S0952197602000672)
+
+
+
+
+
 1. [J. . -C. Fraile, C. J. J. Paredis, Cheng-Hua Wang and P. K. Khosla, "Agent-based planning and control of a multi-manipulator assembly system," *Proceedings 1999 IEEE International Conference on Robotics and Automation (Cat. No.99CH36288C)*, 1999, pp. 1219-1225 vol.2, doi: 10.1109/ROBOT.1999.772528.](https://ieeexplore.ieee.org/abstract/document/772528)
 
-##### **Main ideas:**
+#### **Main ideas:**
 
 + 提出了一个多机械臂系统（MMS）的分布式planning和control架构，这个框架是基于Multi-Agent Systems（MAS）框架设计的。
 + 主要面向flexible（生产任务可以较容易改变）的装配任务（Assembly task），该架构提出了一套各agent的控制及交互策略
@@ -27,13 +42,13 @@ off-line阶段的输入是待装配零件的机械结构，输出是比较上层
 
 on-line阶段是优化问题主要关注的，包括任务分配（allocation）和执行（execution）。任务分配将上层操作细化分配到每个机械臂上。
 
-##### 机械臂场景建模
+#### 机械臂场景建模
 
 ![image-20220331215331807](https://s2.loli.net/2022/03/31/riNDctOV3RBPowx.png)
 
 Part Feeder是给每个机械臂送待装配的零部件的；Rotational Table用于在机械臂之间传送正在装配的物件。
 
-##### Agent建模
+#### Agent建模
 
 该论文的创新点在于，除了将各机械臂视为agent以外，将该场景中负责其他辅助任务的模块都抽象成了同级别的agent。例如：
 
@@ -52,7 +67,7 @@ Part Feeder是给每个机械臂送待装配的零部件的；Rotational Table�
 + Knowledge模块：主要包含两类信息：local信息（agent的capabilities和它自身的状态参数）；global信息（通过communication模块获取到的其他agent的数据）
 + Control模块：控制模块决定agent的行为。每个agent都有自己的行为，例如manipulator agent通过通信模块从trajectory planning agent那里获取到了具体的控制执行命令。
 
-##### 避碰规划
+#### 避碰规划
 
 避碰规划由trajectory planning agent计算完成，采用Manipulator Incremental Motion (MIM) 方法（1999年的老方法...）。
 
