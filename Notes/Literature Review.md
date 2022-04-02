@@ -13,6 +13,8 @@
 
 1. [Optimization techniques applied to multiple manipulators for path planning and torque minimization](https://www.sciencedirect.com/science/article/abs/pii/S0952197602000672)
 
++ **Scheduling for Multi-robot Manipulator System**
+
 
 
 ### Distributed Manipulators
@@ -124,13 +126,13 @@ manipulator incremental motion是通过artificial potential field的方法计算
 
 例如是求解一个最短路径问题：
 
-+ **Coding**：寻找一个表现型（路径）到基因型（编码后的数据）的映射关系，这个映射关系对算法的求解效率和最优解的收敛精度有很大的影响。这个映射关系应该保证两个spring被选中crossover后生成的新spring对应的表现型也在原解空间中。
++ **Coding**：寻找一个表现型（路径）到基因型（编码后的数据）的映射关系，这个映射关系对算法的求解效率和最优解的收敛精度有很大的影响。这个映射关系应该保证两个string被选中crossover后生成的新string对应的表现型也在原解空间中。
   - 二进制编码（一维到一维的映射，将原维度按量级细分进一步后便于GA操作）
   - 浮点编码
   - 符号编码
-+ **Initialization**：随机生成多个初始spring（variation尽可能地大）
-+ **Decoding**：将上一步得到的spring解码回表现型（路径）
-+ **Selection**：用定义好的与目标函数有关的适应性函数（fitness function）对spring进行评估，适应度越高的越有更高的概率被选择出来。选择方式有如下几种：
++ **Initialization**：随机生成多个初始string（variation尽可能地大）
++ **Decoding**：将上一步得到的string解码回表现型（路径）
++ **Selection**：用定义好的与目标函数有关的适应性函数（fitness function）对string进行评估，适应度越高的越有更高的概率被选择出来。选择方式有如下几种：
   + 轮盘赌选择（Roulette Wheel Selection）
   + 随机竞争选择（Stochastic Tournament）
   + 最佳保留选择
@@ -153,6 +155,8 @@ manipulator incremental motion是通过artificial potential field的方法计算
   + 非均匀变异：对原有的基因值做一随机扰动，以扰动后的结果作为变异后的新基因值。对每个基因座都以相同的概率进行变异运算之后，相当于整个解向量在解空间中作了一次轻微的变动；
   + 高斯近似变异：进行变异操作时用符号均值为Ｐ的平均值，方差为P**2的正态分布的一个随机数来替换原有的基因值；
 
+![image-20220402154929859](https://s2.loli.net/2022/04/02/iPvmLSEK85Xqtxd.png)
+
 GA算法较其他求解优化算法的优点是：
 
 + GA算法是对数据点的编码进行操作，而不是数据点本身
@@ -161,3 +165,83 @@ GA算法较其他求解优化算法的优点是：
 + GA算法是基于概率的，不是确定性算法，因此对于非凸优化问题也有机会收敛到全局最优。（GAs use probabilistic transition rules, not deterministic rules.)
 
 GA的缺点就是即使到了最优点附近也可能会反复横跳，不稳定（与编码方式的设计也有关）。
+
+##### Approach
+
+###### 任务定义
+
+对于单臂机器人系统，给定初始和目标点end effector的位置；对于双臂协作机器人系统，给定其中一个机械臂的end effector的位置，另一个机械臂通过master-slave模式来跟随第一个机械臂end effector的路径。因此，无论是对于单臂还是双臂系统，都只由一个机械臂的两个关节角就能确定整个系统的状态（自由度均为2）。
+
+![image-20220402185539822](https://s2.loli.net/2022/04/02/qbV2r8tz3YeS7uv.png)
+
+
+
+![image-20220402185555045](https://s2.loli.net/2022/04/02/ZWOabfp2tj7IkD9.png)
+
+###### 问题建模
+
+为了便于使用GA算法对最优路径进行求解（尽可能降低描述问题所需的维度且保证crossover以后的string仍在原解集中），将关节角表示为时间的四次多项式：
+
+![image-20220402192606954](https://s2.loli.net/2022/04/02/hgv65M2m9Do4RfK.png)
+
+通过代入初始点和目标点的角度和角速度的边界条件，可以将后面的四个参数表示成参数a的一个函数。因此，仅需要将每个关节角的a参数（共两个参数）作为变量求解该优化问题即可。对于双机械臂系统，需要优化的变量还要多一个两机械臂之间的内力（也是通过类似的方式将各组各方向的内力关系表示成一个变量的函数）。
+
+因此，对于单机械臂系统，需要优化的变量仅有两个；对于双机械臂系统，需要优化的变量有三个（变量数量越少，问题维度越低，使用GA和ASA算法的复杂度越低，效率越高）。
+
+###### 优化目标
+
+系统的最终优化目标是降低完成任务所需的总能量。而能量消耗是动力矩的正相关函数，因此只要保证在一次轨迹中所需要的力矩之和被最小化即可。
+
+在这个问题中，优化目标和适应性函数（fitness function）相同
+
+**单机械臂**
+
+![image-20220402193959580](https://s2.loli.net/2022/04/02/kea3nULWK6Ot92R.png)
+
+where τ1 and τ2 are the actuator torques applied at joints 1 and 2, respectively.
+
+**双机械臂**
+
+![image-20220402194448493](https://s2.loli.net/2022/04/02/65xeQhnuvS3KNtg.png)
+
+actuator torque和关节角的关系是：
+
+![image-20220402194215169](https://s2.loli.net/2022/04/02/2KnAqlIeMmofF6z.png)
+
+因此，只需要将轨迹函数（角度与时间的关系函数）在时间上进行离散化，再代入上述关系式，即可将各待优化参数表示成fitness function的函数。此时再使用GA和ASA等方法分别去优化求解即可。
+
+###### 仿真结果
+
+初始位置和目标位置：
+
+![image-20220402194609701](https://s2.loli.net/2022/04/02/CZtTEzlujkU1rf8.png)
+
+The arrival time has been specified to be equal to 2 s.
+
+**单机械臂：**
+
+![image-20220402194530865](https://s2.loli.net/2022/04/02/LEVgToG3asIKkQl.png)
+
+单机械臂的两个link在空间的移动示意图（从两个角度都为0 rad，到都为1 rad）
+
+![image-20220402194838771](https://s2.loli.net/2022/04/02/D2bXZcGpNEg9OdK.png)
+
+每个generation（每次迭代的多个string为一个generation）的平均PI
+
+![image-20220402195052056](https://s2.loli.net/2022/04/02/16YZHV7IPpAEODT.png)
+
+单位时间（不一定按照generation来划分）存在的最低PI（当前获得的最优解）
+
+**双机械臂：**
+
+![image-20220402195222368](https://s2.loli.net/2022/04/02/VkQf2dMHclKtshj.png)
+
+![image-20220402195257274](https://s2.loli.net/2022/04/02/WkY3DALChUO9Qqr.png)
+
+###### 结论
+
+1. Both the algorithms (GA and ASA) reached to same solution which confirms that the solution found was a **global minimum**.
+2. GA are mathematically less complex, and relatively simple and easy to code. The above application, however **shows faster convergence rate of ASA as compared to GA**.
+
+这篇文章在描述机械臂轨迹时采用多项式函数拟合来降低原本有无穷多轨迹的搜索空间（可以类比拟合KDE时使用的最大似然法）。该优化问题的解空间维度大大降低后，才使得GA和ASA算法得以发挥作用。这样采用简单模型来简化复杂问题的描述方式值得学习。
+
