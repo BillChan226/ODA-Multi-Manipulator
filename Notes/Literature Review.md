@@ -2,6 +2,14 @@
 
 ## Multi-manipulator System
 
+### 任务定义
+
+任务概述：
+
+性质：
+
++ 总装配任务可以分解成每个机械臂承担的子任务，且这些子任务互相依赖（task dependencies）
+
 ### Literature Categorization
 
 + **Distributed Manipulators on a Product Line:**
@@ -15,7 +23,7 @@
 
 + **Scheduling for Multi-robot Manipulator System**
 
-
+1. [Real-time Scheduling of Distributed Multi-Robot Manipulator Systems](https://cdnsciencepub.com/doi/abs/10.1139/tcsme-2005-0012)
 
 ### Distributed Manipulators
 
@@ -244,4 +252,26 @@ The arrival time has been specified to be equal to 2 s.
 2. GA are mathematically less complex, and relatively simple and easy to code. The above application, however **shows faster convergence rate of ASA as compared to GA**.
 
 这篇文章在描述机械臂轨迹时采用多项式函数拟合来降低原本有无穷多轨迹的搜索空间（可以类比拟合KDE时使用的最大似然法）。该优化问题的解空间维度大大降低后，才使得GA和ASA算法得以发挥作用。这样采用简单模型来简化复杂问题的描述方式值得学习。
+
+### Scheduling Problem
+
+#### Real-time Scheduling of Distributed Multi-Robot Manipulator Systems
+
+[P. Yuan, M. Moallem, and R.V. Patel. REAL-TIME SCHEDULING OF DISTRIBUTED MULTI-ROBOT MANIPULATOR SYSTEMS. *Transactions of the Canadian Society for Mechanical Engineering*. **29**(2): 179-194. https://doi.org/10.1139/tcsme-2005-0012](https://cdnsciencepub.com/doi/abs/10.1139/tcsme-2005-0012)
+
+##### Main ideas:
+
++ Multi-robot这样的实时系统需要real-time scheduler, which depends on the **dispatching mechanism**:
+  + time-driven:
+    + Branch and bound search
+  + priority-driven:
+    + First-In-First-Out (FIFO)
+    + Round-Robin (RR)
+    + Earliest-Deadline-First (EDF)
+    + Minimum-Laxity-First (MLF)
+    + Least-Slack-Time-First (LST)
++ 上述算法都没有考虑在multi-robot装配系统中至关重要的task dependencies（即任务之间的依赖关系）
++ 该论文提出了一个考虑了任务间依赖的task-oriented的on-line scheduling算法和一个可以避免deadlock的offline scheduling算法。
+
+
 
