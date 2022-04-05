@@ -6,9 +6,31 @@
 
 任务概述：
 
-性质：
+性质：总装配任务可以分解成每个机械臂承担的子任务，且这些子任务不存在相互依赖（task dependencies）。子任务可以表征成各机械臂共同工作空间中的不同任务点，且工作空间中存在静态障碍物。
 
-+ 总装配任务可以分解成每个机械臂承担的子任务，且这些子任务互相依赖（task dependencies）
+![Task Defination](https://s2.loli.net/2022/04/05/2FXgqQWvE8n6TbI.png)
+
+因此，机械臂 Scheduling问题可以分解成两个子问题：
+
++ 导航每个机械臂到指定的位置（Cartesian Coordinates）
++ 全局给每个机械臂分别规划它们需要达到的位置
+
+**对于第一个子问题：**
+
+将每个机械臂导航到指定位置，涉及到需要计算给定笛卡尔坐标的逆运动学解。对于较简单的机械臂结构（冗余度小-DOF<=2），可以直接求解给定坐标的关节角[[7]](https://www.sciencedirect.com/science/article/abs/pii/S0952197602000672)。对于较复杂的机械臂结构，求解逆运动学问题的解比较复杂，大致有如下几种方法：
+
++ 基于强化学习（无法直接得出坐标到角度的映射）
++ 基于神经网络拟合IK函数[[8]](https://www.sciencedirect.com/science/article/abs/pii/S0952197699000500)（数据集不够？）
+
++ 基于启发式搜索算法例如GA，ASA，EM（速度快但每一对坐标点之间都需要重新搜索）
+
+**对于第二个子问题：**
+
+在第一个子问题已经计算出机械臂到各个任务点的近似解以后，假设空间中存在多个任务点需要到达，如果将这些任务点分配个多个机械臂来保证目标函数（minimum cycle time, minimum energy consumption, collision-free）达到near-optimal？
+
++ 分别算出各个机械臂到达每个任务点的时间，使用传统的offline scheduling算法即可（如果机械臂达到每个任务点都有多个solution，这样的scheduling算法时间复杂度很大
++ 使用启发式算法，定义好对每一种特定的任务实现方式的error function（fitness function），采用迭代的方式来求解near-optimal
++ 将每个任务点作为state，根据目标设计奖励函数，利用强化学习解这个序列规划问题（也可以将两个子问题放在一起，构造一个end-to-end的强化学习问题）
 
 ### Literature Categorization
 
@@ -24,6 +46,7 @@
 + **Scheduling for Multi-robot Manipulator System**
 
 1. [Real-time Scheduling of Distributed Multi-Robot Manipulator Systems](https://cdnsciencepub.com/doi/abs/10.1139/tcsme-2005-0012)
+2. [Optimization of the time of task scheduling for dual manipulators using a modified electromagnetism-like algorithm and genetic algorithm](https://link.springer.com/article/10.1007/s13369-014-1250-0)
 
 ### Distributed Manipulators
 
@@ -273,5 +296,116 @@ The arrival time has been specified to be equal to 2 s.
 + 上述算法都没有考虑在multi-robot装配系统中至关重要的task dependencies（即任务之间的依赖关系）
 + 该论文提出了一个考虑了任务间依赖的task-oriented的on-line scheduling算法和一个可以避免deadlock的offline scheduling算法。
 
+#### Optimization of the Time of Task Scheduling for Dual Manipulators using a Modified Electromagnetism-Like Algorithm and Genetic Algorithm
 
+[Abed, I. A., Koh, S. P., Sahari, K. S. M., Jagadeesh, P., & Tiong, S. K. (2014). Optimization of the time of task scheduling for dual manipulators using a modified electromagnetism-like algorithm and genetic algorithm. *Arabian Journal for Science and Engineering*, *39*(8), 6269-6285.](https://link.springer.com/article/10.1007/s13369-014-1250-0)
+
+#### Main ideas
+
+机械臂 Scheduling问题可以分解成两个子问题：
+
++ 导航每个机械臂到指定的位置（Cartesian Coordinates）
++ 全局给每个机械臂分别规划它们需要达到的位置
+
+**对于第一个子问题：**
+
+将每个机械臂导航到指定位置，涉及到需要计算给定笛卡尔坐标的逆运动学解。对于较简单的机械臂结构（冗余度小-DOF<=2），可以直接求解给定坐标的关节角[[7]](https://www.sciencedirect.com/science/article/abs/pii/S0952197602000672)。对于较复杂的机械臂结构，求解逆运动学问题的解比较复杂，大致有如下几种方法：
+
++ 基于强化学习（无法直接得出坐标到角度的映射）
++ 基于神经网络拟合IK函数[[8]](https://www.sciencedirect.com/science/article/abs/pii/S0952197699000500)（数据集不够？）
+
++ 基于启发式搜索算法例如GA，ASA，EM（速度快但每一对坐标点之间都需要重新搜索）
+
+**对于第二个子问题：**
+
+在第一个子问题已经计算出机械臂到各个任务点的近似解以后，假设空间中存在多个任务点需要到达，如果将这些任务点分配个多个机械臂来保证目标函数（minimum cycle time, minimum energy consumption, collision-free）达到near-optimal？
+
++ 分别算出各个机械臂到达每个任务点的时间，使用传统的offline scheduling算法即可（如果机械臂达到每个任务点都有多个solution，这样的scheduling算法时间复杂度很大
++ 使用启发式算法，定义好对每一种特定的任务实现方式的error function（fitness function），采用迭代的方式来求解near-optimal
++ 将每个任务点作为state，根据目标设计奖励函数，利用强化学习解这个序列规划问题（也可以将两个子问题放在一起，构造一个end-to-end的强化学习问题）
+
+#### IK Solvation
+
+对于第一个子问题，这篇paper使用了他们升级后的**EM**算法，the so-called Modified EM Algorithm with Two-Direction Local Search (MEMTDLS).
+
+EM算法：[智能优化算法：类电磁机制算法 - 附代码_智能算法研学社（Jack旭）的博客-CSDN博客](https://blog.csdn.net/u011835903/article/details/120902972?spm=1001.2014.3001.5506)
+
+给定任务点（三维坐标）为输入，他们使用EM算法求解一组较好的近似IK关节角解。相关目标函数定义如下：
+
+![image-20220405153824523](https://s2.loli.net/2022/04/05/PlRaYmZOX3bcL4k.png)
+
+![image-20220405153839450](https://s2.loli.net/2022/04/05/W4SIBveLYMJTnjz.png)
+
+两个任务点之间的trajectory直接使用3次多项式拟合：
+
+![image-20220405154001664](https://s2.loli.net/2022/04/05/mT1bQLkj8xHMarV.png)
+
+和上一篇论文不同的是，这里的四个常数不是要优化的变量，直接求解即可。上一篇论文中，准确的关节角已经给出，需要plan的就是两个角度之间功耗最低的trajectory（Actually, 上一篇论文的所有研究都focus在了两个角度之间的最优trajectory上，而这篇论文已经预设了这样的trajectory，研究目标并不相同）。
+
+![image-20220405161823607](https://s2.loli.net/2022/04/05/Ne9ZPYwCf5hKuWG.png)
+
+原本EM算法的local search是对于每一个迭代出的解都在邻域（length是固定的）随机搜索一个更好的解：
+
+![image-20220405154541715](https://s2.loli.net/2022/04/05/KmurpXjOg476NJ3.png)
+
+My comments: This pseudo code is really confusing. The study of Science is decayed exactly by papers like these. 
+I think "Counter" is identical to "counter". The maximum iterations of local search shall not surpass Lsiter, so for those randomly generated y, if their corresponding f value do not fare better than the original θi, counter is incremented by 1(until it reaches Lsiter). Otherwise, counter jumps to Lsiter - 1, and then incremented by 1, the loop is finished immediately.
+
+m是数据点的个数；n是维度；Lsiter是对于每个维度在邻域内随机搜索的最高迭代次数（一旦找到更优点就直接停止对此数据点此维度的迭代）因此，时间复杂度是 m * n * Lsiter。
+
+改进后的EM算法仅在上一次迭代得到的best point的邻域内搜索，且邻域的length随迭代此输的增多而递减。
+
+![image-20220405154947816](https://s2.loli.net/2022/04/05/SKaw1JWUOckpnER.png)
+
+因为他们发现，length越小，收敛精度越高（怎么会这样？）
+
+![image-20220405155111537](https://s2.loli.net/2022/04/05/8Wlahw2UJrndMkq.png)
+
+并且，在改进的算法中，对于每一个维度上的数值在邻域内改变的方向（增或减）并不是随机的，而是将两个方向改变后的新数据点对应的值都保存下来，再最后进行比较。
+
+![image-20220405155336493](https://s2.loli.net/2022/04/05/ORLDC8yuJIMG3AV.png)
+
+从上述伪代码中易得，时间复杂度是m * k (* 2)。因为对于每个维度k，仅在两个方向上各跨出λ*β，产生一对新的数据点。这个改进后的算法仅在最优点附近搜索，确实可能保证更快收敛到更优的值。
+
+![image-20220405161455334](https://s2.loli.net/2022/04/05/e8194sykrKI3L2g.png)
+
+![image-20220405161514712](https://s2.loli.net/2022/04/05/SLrOkBYe2CsptEX.png)
+
+值得注意的是，使用EM算法来求解给定坐标点的关节角，虽然一直强调best point，但最后却保留了multiple solutions。（由于高DOF机械臂的冗余，达到相似的coordinate，joint angles可能vary greatly，导致到达这些角度所需要的时间也vary greatly。所以最精确的角并不代表最temporal-efficient，因此需要把multiple joints都保留下来供后面的GA Scheduler来选择）
+
+#### GA Scheduler
+
+对于第二个子问题，该论文采用启发式算法GA来给每个机械臂分配任务点。
+
+给定mα个任务点以及他们对应的solution（EM求出的multiple solutions中的某一个），travel time:
+
+![image-20220405160241949](https://s2.loli.net/2022/04/05/r1EKhgjCuWmMq8l.png)
+
+从mα回到初始点（优化目标是cycle time）所需的travel time:
+
+![image-20220405160356359](https://s2.loli.net/2022/04/05/bAW5q4VoX7rhcpk.png)
+
+对于某一个机械臂，cycle time:
+
+![image-20220405160452824](https://s2.loli.net/2022/04/05/Qb1fRp93tWM2cVB.png)
+
+因此，对于一个双机械臂场景，需要优化的方程是：
+
+![image-20220405160529030](https://s2.loli.net/2022/04/05/b4ys9I6mrBqQWVL.png)
+
+考虑到避碰问题，将机械臂和环境中的静态障碍物采用tangent circle方法来建模：
+
+![image-20220405160701935](https://s2.loli.net/2022/04/05/O3jB271szurUpGI.png)
+
+因此，若在某一次特定规划中发生了碰撞，则将原优化目标乘一个很大的数来迫使最优规划方案中不发生碰撞：
+
+![image-20220405160849719](https://s2.loli.net/2022/04/05/3wSh1Cd9Yacs6BG.png)
+
+使用GA算法，以TF为fitness function来求解两个机械臂分配得到的任务点、这些任务点的到达顺序以及各任务点采用哪种solution。
+
+![image-20220405161045072](https://s2.loli.net/2022/04/05/RSN8MVy3dthe1nQ.png)
+
+在一个chromesome中，前8位代表任务点的到达顺序；中间8位表示前8个任务点具体采用的solution；最后一位代表总任务的divider：例如若divider为3，则前三位对应的任务分配个1号机械臂，后五位对应的任务分配给2号机械臂。
+
+对于这三个组成部分，这篇论文都定义了恰当的crossover和mutation方式，来适应这个特定的任务。对于这样的离散规划问题，使用GA是有一定优势的。
 
