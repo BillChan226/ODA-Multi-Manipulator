@@ -1,0 +1,18 @@
+Instance: Type-2-SBF2/Type-2-alpha0.50/jackson_c=10.alb
+Importing data... ------------------------------------------
+
+ self.numTasks: 11
+self.stations range(0, 5)
+completed.
+Restricted license - for non-production use only - expires 2023-10-25
+Initialising the master problem... complete (0.000s).
+
+0.0/1800.0 seconds elapsed
+===============================
+Master 0: 	Cycle: 	10
+		UB: 	57
+		Gap: 	470.00 %
+
+ Station 0> f:\sjtu\projects\2022 intern\oda-multi-manipulator\assembly task scheduling\sualbsp-2-master\code\models\sualbsp2_benders.py(1567)solve_sub_problem()
+-> approxStationLoad = round(self.curStationLoad[k], 2)
+(Pdb) 

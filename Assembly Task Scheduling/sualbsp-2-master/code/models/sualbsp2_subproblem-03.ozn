@@ -1,0 +1,4 @@
+output if full_output==0 then [("load = "++show(load))++"\n"] elseif full_output==1 then [("load = "++show(load))++"\n"]++[("start = "++show(s))++"\n"] else [""] endif;
+int: load;
+array [TASK] of int: s;
+int: full_output = 1;

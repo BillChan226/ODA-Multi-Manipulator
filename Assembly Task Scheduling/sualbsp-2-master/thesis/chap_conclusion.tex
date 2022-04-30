@@ -1,0 +1,109 @@
+%!TEX root = thesis-kdyoung.tex
+
+% \begin{savequote}%[45mm]
+% ---Essentially, all models are wrong, but some are useful.
+% \qauthor{George Box}
+% \end{savequote}
+
+\chapter{Conclusion}
+\label{chap:conc}
+
+In this thesis we devised a logic-based Benders decomposition
+of the \sua{2}.
+The natural division between the assignment and scheduling
+variables led us to believe that this approach would be
+well-suited to the problem.
+Our formulation resulted in a classical \sab{2}
+being solved by the master problem while
+a sub-problem for each station was created.
+We considered multiple ways of formulating and solving the sequencing
+problems that arose in each station.
+
+Logic-based Benders decomposition allowed us to 
+formulate a sub-problem as either a MIP or a constraint program and 
+using its inference dual to generate Bender cuts.
+Employing CP solving technology resulted in marginal
+improvements to the runtime and solution quality when compared
+to MIP sub-problems.
+However the CP solver \chuffed was only able to 
+operate on one core while the MIP solver \gurobi was able to utilize
+all four cores.
+The inclusion of the global constraint \cumu in the CP model
+and investigating the possible search strategies of the CP solver,
+both contributed to the CP model outperforming the
+MIP sub-problem formulation.
+
+Both feasibility and optimality Benders cuts were devised.
+Solving each sub-problem to optimality allowed a much wider
+range of cuts to be generated at each iteration of the Benders
+algorithm.
+We provided a detailed analysis into the advantages and disadvantages
+of each possible cutting procedure and after performing experiments,
+we were able to conclude that combining the global upper bound, $\mathcal{C}_{gb}$,
+with our strongest inference cut, $\mathcal{C}_{iii}$, resulted
+in the most effective cutting planes added to the relaxed master problem.
+
+In summary, our decomposition approach was able to solve
+100\% of the smallest class of instances in an average runtime of
+0.41 seconds.
+For the second class, which contained small-to-medium sized instances,
+our method was able to solve 61.6\% of the instances, while also
+finding superior gap values compared to pure MIP models solved with \gurobi.
+In the case of largest class we considered, only 15.3\% of optimal solutions
+were proven in the 30 minute time limit.
+Of the 396 instances we tested which had up to 58 tasks and 31 stations,
+the Benders decomposition was able to solve 51.5\% to optimality.
+
+\section{Future Work}
+\label{sec:conc:future}
+The work and results we have reported on in this thesis
+stand as only the very beginning of the research which
+could be done into decomposition approaches to the \sua{}.
+The logic-based Benders decomposition we devised can be viewed
+simply as a framework for a solution procedure to this problem.
+As such this framework presents a range of possible future research directions;
+some of which we will now detail.
+
+Firstly, applying our Benders decomposition to the type-1 problem
+of \sua{} is a straight forward extension.
+This will result in $m$ sub-problems needing to be solved
+where $m$ is a variable, while each station has an upper bound
+on its load.
+We can again view these sequencing problems as asymmetric TSPs, however
+now not only is the number of cities within each TSP unknown,
+but the number of TSPs to be solved is also a decision.
+As each sub-problem has a pre-defined upper bound, feasibility
+cuts may be better suited in the type-1 case.
+
+The final results we presented in the previous chapter tell us that
+the vast majority of solve time in our decomposition is due to
+the relaxed master problem.
+We only considered a full mixed integer programming approach for the 
+master however this was not exclusively necessary. 
+Any procedure which can return an assignment of tasks to the stations and provides 
+a lower bound on the cycle time would be applicable.
+Thus, developing heuristic procedures to replace our current formulation of
+the \rmp{} may be a fruitful direction of investigation.
+In fact, it is very possible that implementing such a procedure --- even if it is 
+relatively simple --- could significantly improve the results 
+found here.
+
+In this thesis, we considered few ways of formulating the MIP
+version of the sub-problems.
+Further investigation into valid inequalities of this program
+or simply a different set of decision variables could lead
+to better results.
+Regarding the CP sub-problems, the lack of parallelization
+of the \chuffed solver hindered its capabilities somewhat.
+So when this feature becomes available, re-running the
+experiments to check the reduction in runtime 
+would provide a useful comparison between different
+solution technologies.
+
+Finally, we emphasise the limited amount of research which
+has been done into the \sua{}.
+This variant of the \albp{} presents a non-trivial layer of complexity
+with a set of scheduling decisions,
+however this consideration is applicable to a wide variety of assembly lines.
+Thus, including setup costs in other well-known variants of the 
+\albp{} would lead to a range of possible research directions.

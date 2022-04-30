@@ -47,6 +47,11 @@
 
 1. [Real-time Scheduling of Distributed Multi-Robot Manipulator Systems](https://cdnsciencepub.com/doi/abs/10.1139/tcsme-2005-0012)
 2. [Optimization of the time of task scheduling for dual manipulators using a modified electromagnetism-like algorithm and genetic algorithm](https://link.springer.com/article/10.1007/s13369-014-1250-0)
+2. [Fast Scheduling of Robot Teams Performing Tasks With Temporospatial Constraints](https://ieeexplore.ieee.org/abstract/document/8279546)
+
++ **Flexible Job Scheduling Problem**
+
+1. [Dynamic scheduling for flexible job shop with new job insertions by deep reinforcement learning](https://www.sciencedirect.com/science/article/abs/pii/S1568494620301484)
 
 ### Distributed Manipulators
 
@@ -409,3 +414,108 @@ m是数据点的个数；n是维度；Lsiter是对于每个维度在邻域内随
 
 对于这三个组成部分，这篇论文都定义了恰当的crossover和mutation方式，来适应这个特定的任务。对于这样的离散规划问题，使用GA是有一定优势的。
 
+#### Fast Scheduling of Robot Teams Performing Tasks With Temporospatial Constraints
+
+[Gombolay, M. C., Wilcox, R. J., & Shah, J. A. (2018). Fast scheduling of robot teams performing tasks with temporospatial constraints. *IEEE Transactions on Robotics*, *34*(1), 220-239.](https://ieeexplore.ieee.org/abstract/document/8279546)
+
+##### Main Idea
+
+1. 提出了"Tercio"算法来解决有时间（temporal）和空间（spatial）约束的机械臂任务分配（task allocation）问题。该算法的输出是每个agent分配得到的task和这些task的sequence。
+2. 该算法由一个multi-agent task sequencer（启发自计算机处理器的scheduling techniques）和一个混合整数线性规划器（mixed-integer linear program solver）组成。
+
+
+
+##### 混合整数线性规划（MILP）方法
+
+任务规划问题可以化归为一个MILP问题。解决MILP问题常用的方法有Benders Decomposition。
+
+###### Benders Decomposition
+
+Benders分解由Jacques F. Benders在1962年提出[[9]](https://blog.csdn.net/qx3501332/article/details/104978928/#fn1)。 它是一种把线性规划问题分解为小规模子问题的技巧。通过迭代求解主问题和子问题，从而逼近原问题的最优解。
+
+[线性规划技巧: Benders Decomposition_胡拉哥的博客-CSDN博客](https://blog.csdn.net/qx3501332/article/details/104978928/)
+
+[Benders分解(Benders Decomposition)算法：算法原理+具体算例_出淤泥的博客-CSDN博客_benders分解算法](https://blog.csdn.net/weixin_42991799/article/details/120247976)
+
+[Benders分解算法详解_大弱智鱼的博客-CSDN博客_benders分解算法](https://blog.csdn.net/qq_42756072/article/details/107728357)
+
+之所以要使用Benders分解，就是因为原问题中既有较复杂的约束（整数约束、非线性约束）又有线性约束，难以直接求解。因此motivation就是：能否将变量解耦，把原问题分成主问题（仅包含约束较复杂约束的变量）和子问题（仅包含线性约束）。子问题是一个标准的线性规划问题。Benders通过迭代不断引入约束提高原问题的下界的方式最后逼近最优解。
+
+原问题：![image-20220413155421636](https://s2.loli.net/2022/04/13/cTqbYBNw26avL1I.png)
+
+主问题（master problem）：![image-20220413155445600](https://s2.loli.net/2022/04/13/sKhZHB7UpaDwXxl.png)
+
+子问题（subproblem）：![image-20220413155506513](https://s2.loli.net/2022/04/13/71RIjoeqOtBEYNy.png)
+
+子问题的对偶问题：![image-20220413155631836](https://s2.loli.net/2022/04/13/H1AuRkVgfSLJmNx.png)
+
+之所以要求子问题的对偶问题，是因为子问题中可行域与主问题中fix的y有关，而其对偶问题的可行域并不依赖于y，y只影响目标函数值。因此，若对偶问题有界，则其极值一定存在于![image-20220413155905272](https://s2.loli.net/2022/04/13/omR3lu8dst4Yr1p.png)所确定的多面体（非有限多面体，即非封闭的）的顶点处（或者Benders optimality cuts里描述的极点)。因为该多面体的顶点（极点)是有限N个的，因此可以分别将每个顶点求出代入到原问题中构造出N个约束条件。即写成如下形式：
+
+![image-20220413160208673](https://s2.loli.net/2022/04/13/EmzFHt1q6DJhW2R.png)
+
+q是将每个顶点分别代入对偶问题得到的最大值，即子问题在主问题fix y的情况下的解。如果不求对偶问题，则子问题的极值难以表示。对偶问题将子问题的约束变成了有限个，使得我们可以不用一开始就求得很复杂的主问题，而可以慢慢增加约束数量（通过引入顶点或极线），至少能保证在较少计算量的情况下就得到near-optimal的解。
+
+上式中，![image-20220413160645400](https://s2.loli.net/2022/04/13/k64VH3XOmqi2Cag.png)代表极线（extreme rays)。因为主问题的约束数量是慢慢增加的，因此每次求得的(y, q)不一定是满足所有约束条件的。这样求主问题得到的y代入子问题，子问题可行域可能为空。子问题的可行域为空，则对偶问题无界；子问题无界，则对偶问题可行域为空。因此，当且仅当，对偶问题有界时：
+
+![image-20220413160618402](https://s2.loli.net/2022/04/13/vBXbqgT5Lz3HMek.png)
+
+主问题求得的y才能使得子问题的可行域有解（这样的x,y构成一组可行解）。当y0代入子问题后，对偶问题无界时（说明子问题可行域为空），我们应该对主问题添加一个新的约束，来保证再次求解主问题的时候，不会再求得y0了。这样的约束就由上述的极线表达式确定。
+
+[在最优化里面，如何理解多面体的极点与极方向？ - 知乎 (zhihu.com)](https://www.zhihu.com/question/376887239/answer/1077977910)
+
+上述关于极点和极线的描述看似抽象，我认为可以这么理解：
+
+在一个二维平面上，假设某可行域为[0,+inf] 则极点为(0,0)，极方向为(1,0）或x>0。假设需要优化的函数为 max(y) = -x+2 。则显然，此时满足式：
+
+![image-20220413160618402](https://s2.loli.net/2022/04/13/eUlZzXCbOvxidpF.png)
+
+因为![image-20220413160645400](https://s2.loli.net/2022/04/13/67f21gN9yZvjKS4.png)>0，(b-By) = -1。最大值在极值处取得。但如果主问题fix的y使得子问题的对偶问题的待优化函数变成了：max(y) = x+2 。显然此时该问题无界，因为此时：![image-20220413164012454](https://s2.loli.net/2022/04/13/qOmBGzYJapthe65.png)。
+
+在求解该对偶问题时，如果出现![image-20220413164012454](https://s2.loli.net/2022/04/13/3lYDoEL4IJcrSeA.png)的情况，可以求出该情况对应的极线，然后将该约束加入主问题中。
+
+通过往主问题中不断增加约束，可以保证原问题的下界不断增加。对于仅含有部分约束的主问题中，若得到的y *（对应的q *仅为部分顶点对应的最大值）代入子问题中（代入所有顶点去求最大值），得到的q比q *更大，说明对于y * 在顶点集中还有顶点需要加入主问题中去作为约束条件。如果得到的y *代入子问题后，得到的q和q *相等，说明主问题中的约束已经完全包含了求得该q的所有顶点，此时得到最优解。也即是说，若主问题连续两次求得的y相同时（此时计算得到的q和q *一定相等），得到最优解。
+
+因为在迭代过程中，下界是单调递增的。每次代入子问题后可以求得一次原问题的值，在这些值中取得最小值即是原问题的上界。反复求解主问题和子问题直到上下界相等（或非常接近）时，取得使得原问题取上界的解即为optimal solution（上下界相等），near-optimal solution（非常接近）。
+
+**Logic-Based Benders Decomposition**
+
+
+
+**Constraint Programming**
+
+[约束满足问题（CSP）_宇内虹游的博客-CSDN博客_约束满足问题](https://blog.csdn.net/weixin_39278265/article/details/80932277)
+
+**使用要素化来描述状态**：一组变量，每个变量有自己的值。当每个变量都有自己的赋值同时满足所有关于变量的约束时，问题就得到了解决。这类问题就叫做约束满足问题（CSP），全称Constraint Satisfaction Problem。
+
+CSP利用了状态结构的优势，使用的是**通用策略**而不是**问题专业启发式**来求解复杂问题。
+
+**主要思想**：通过识别违反约束的变量/值的组合迅速消除大规模的搜索空间(约束传播算法）。
+
+**约束传播：**
+
++ 节点相容：单个变量（对应一个节点）值域中的所有取值满足它的一元约束，就是节点相容的；
++ 弧相容：如果CSP中某变量值域中所有取值满足该变量所有二元约束，则此变量弧相容；如果每个变量相对其他变量都是弧相容的，则称该网络是弧相容的；
++ 路径相容：观察变量得到隐式约束，并以此来加强二元约束；
+
+![这里写图片描述](https://s2.loli.net/2022/04/28/oW38bdg2SQkLV9P.png)
+
++ k-相容：如果对于任何k-1个变量的相容赋值，第k个变量总能被赋予一个和前k-1个变量相容的值，那么这个CSP就是k相容的；（推导：2-相容==该网络是弧相容的）；
+
+在澳大利亚地图着色问题中，显然该网络都是弧相容的，因此意义不大，需要更强的相容概念：路径相容。
+
+
+
+
+
+#### Dynamic scheduling for flexible job shop with new job insertions by deep reinforcement learning
+
+动态任务Balancing and Scheduling主要有下面三种应对策略：
+
++ **Mathematical Programming**: 用MILP+CP等数学规划的方式强行解出最优解，这种方案往往能保证最终solution的optimality，但是只能应对小规模的问题（NP hard problem）；
++ **Dispatching Rules**: 根据人为先验知识提出一些dispatching rules，这些rules能够立即得出dynamic场景下的每个job的assignment和scheduling方案，但这个方法是myoptic的，甚至不能保证局部最优；
++ **Meta-heuristics**: Meta-heuristics将动态规划问题分解成一系列静态的子问题，然后分别用一些启发式算法 (e.g. GA, SA, PSO) 来求解；这样的方法得到的解虽然比dispatching rules更优（考虑了更长的time window)，但更time-consuming，因此不适合real-time scheduling；
++ **Reinforcement Learning**: DFJSP问题是一个典型的Markov Decision Process，因此可以用RL来解这个MDP过程；RL能够快速对dynamic events进行反应，而且由于训练过程经验的积累，RL能够比dispatching rules更高效地选择利于全局最优的dispatching方案；RL和其他几种方法一样，无法保证得到最优解，但由于它能对环境和任务的uncertainty更高效地反应，使得它成为目前最流行的DFJSP方法；
+
+
+
+此处需要注意两种
