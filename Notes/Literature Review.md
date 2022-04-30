@@ -518,4 +518,71 @@ CSP利用了状态结构的优势，使用的是**通用策略**而不是**问�
 
 
 
-此处需要注意两种
+##### 问题定义
+
+[优化 | 用遗传算法，开启研究车间调度问题之门 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/383594362)
+
+**车间调度问题的分类**
+
+（1）单机调度问题 加工系统中只有一台机床，代加工的工件有且仅有一道工序，所有工件都在该机床上进行加工。
+
+（2）并行机调度问题 加工系统中有多个完全相同的机床，每个工件只有一道工序，工件可以在任意一台机床上加工。
+
+（3）开放车间调度问题 每个工件的工序之间的加工顺序是任意的。工件的加工路线可以在任何一道工序开始，在任何一道工序结束。工件的加工没有特定的技术路线约束，各个工件之间没有先后关系约束。
+
+（4）流水车间调度 加工系统中有一组功能不同的机床，待加工的工件包含多道工序，每道工序在一台机床上加工，所有工件的加工路线相同，每个工件的工序之间有先后顺序约束。
+
+（5）作业车间调度问题 加工系统中有一组功能不同的机床，待加工的工件包含多道工序，每道工序在一台机床上加工，工件的加工路线互不相同，每个工件的工序之间有先后顺序约束。
+
+
+
+**柔性作业车间调度问题(FJSP)描述**
+
+如下表，n个工件在 m 台机器上加工 ，按照工件的工艺路线要求，每个工件由一道或多道具有顺序约束的工序组成，每道工序可能有多台可以选择的机器进行加工。加工过程中，需要满足以下约束条件 。
+
+(1)同一时刻，每道工序最多只能选择一台机器进行加工，一旦开始加工不能中断，直至加工完成。
+
+(2)同一时刻，每台机器最多只能加工一道工序。
+
+(3)同一工件的工序之间存在先后顺序约束 ，不同工件的工序之间不存在顺序约束。
+
+(4)不同工件之间具有相同的加工优先等级。
+
+![img](https://pic1.zhimg.com/80/v2-0b08fc48fea7343e5b12435d102b9964_720w.jpg)
+
+##### 主要方法
+
+和其他使用RL的文章方法不太一样，在[[1]](https://www.sciencedirect.com/science/article/abs/pii/S1389128621001031), [[2]](Actor-Critic Deep Reinforcement Learning for Solving Job Shop Scheduling Problems)中，作者都直接采用RL给每个Job进行Schedule，例如对action的定义如下：
+
+![image-20220430194931255](https://s2.loli.net/2022/04/30/H29g576fV13vO4x.png)
+
+由于这两个方法仅仅针对JSP问题（job已经assign到machine上了），他们的Observation包括了每个Job的Assignment matrix(static)，processing time matrix(static)，和job processing status matrix(indicate各个operation是否完成)
+
+也就是说，这样设计的observation和action的rl agent需要自己学会如何dispatch jobs，而这篇论文认为这样设计observation并不合理：In most RL-based scheduling methods, state features are defined as some indicators of production status, i.e. the number of machines/jobs/operations in shop floor, the remaining processing time of uncompleted jobs, the current workload/queue length of each machine and so on. However, in real world application, the number of machines/jobs/operations are unlimited and can be extremely large. If these indicators are directly taken as state features, **the input of DQN may vary in a wide range**. This may **deteriorate the performance and generality of DQN in untrained situations since only particular production configurations are experienced in the training process**. 这篇文章的作者人为设计了7个能表征production status信息的状态而不像前面两篇文章作者直接用全部的环境信息作为state，即该作者的出发点是通过人为设计几个特征来从对高维输入降维（人为设计特征提取器），因为利用全部信息无疑增大了observation space的维度，对探索有更高的要求。However, 既然网络采用了DQN，前面的deep网络就是用来学习这个低维状态表征方式的，为什么一定要人为设计特征提取器呢？
+
+7个observation space状态表征参数：
+
+![image-20220430200219920](https://s2.loli.net/2022/04/30/zcuvSIEFJeOU2g4.png)
+
+![image-20220430200153725](https://s2.loli.net/2022/04/30/HKiCR5adOcYwPNq.png)
+
+6个action：
+
+同样的，machine/job/operation的数量一旦增大，action space的维度也会增大，不利于DQN网络的收敛。因此作者利用先验知识自己先设计了6种dispatching rules，各个dispatching rules适用于不同的场景（单独只利用任何一种dispactching rules都会因为myoptic而陷入局部最优）：
+
+![image-20220430200543238](https://s2.loli.net/2022/04/30/oMhGlYWOSgbRZ7B.png)
+
+![image-20220430200557043](https://s2.loli.net/2022/04/30/qZm9CGf8D53LOxj.png)
+
+![image-20220430200610901](https://s2.loli.net/2022/04/30/RSJ3shv6nXOIzBU.png)
+
+![image-20220430200622952](https://s2.loli.net/2022/04/30/F8cAYRpNBbhCMk5.png)
+
+![image-20220430200635598](https://s2.loli.net/2022/04/30/2OpIwUgBKGrxYWq.png)
+
+![image-20220430200647589](https://s2.loli.net/2022/04/30/wrguElTyvZO9s3f.png)
+
+Reward设计没什么特殊的，在一个episode内因为不能得到最后的max completion time/total tardiness，只能比较相邻两帧之间的参数：
+
+![image-20220430200810985](https://s2.loli.net/2022/04/30/Y6G1prBnZufdJWi.png)
+
