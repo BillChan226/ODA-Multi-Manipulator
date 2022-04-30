@@ -509,6 +509,10 @@ CSP利用了状态结构的优势，使用的是**通用策略**而不是**问�
 
 #### Dynamic scheduling for flexible job shop with new job insertions by deep reinforcement learning
 
+有笔记的论文版本：
+
+[ODA-Multi-Manipulator/Dynamic scheduling for flexible job shop with new job insertions by.pdf at main · BillChan226/ODA-Multi-Manipulator (github.com)](https://github.com/BillChan226/ODA-Multi-Manipulator/blob/main/Multi Manipulators/Papers/Dynamic scheduling for flexible job shop with new job insertions by.pdf)
+
 动态任务Balancing and Scheduling主要有下面三种应对策略：
 
 + **Mathematical Programming**: 用MILP+CP等数学规划的方式强行解出最优解，这种方案往往能保证最终solution的optimality，但是只能应对小规模的问题（NP hard problem）；
